@@ -24,10 +24,13 @@ namespace Confaque
                 app.UseDeveloperExceptionPage();
             }
 
-            app.Run(async (context) =>
-            {
-                await context.Response.WriteAsync("Hello World!");
-            });
+            app.UseHsts(option => option.MaxAge(days: 1))
+                .UseStatusCodePages()
+                .UseMvc(route => route.MapRoute(name: "default", template: "{Controller=Conference}/{Action=Index}/{id?}"))
+                .Run(async (context) =>
+                {
+                    await context.Response.WriteAsync("Hello World!");
+                });
         }
     }
 }
