@@ -1,7 +1,7 @@
 ﻿@using Shared.Models
 @using Confaque.Service
 @model IEnumerable<Shared.Models.ConferenceModel>
-@inject AttendeeService AttendeeRepo
+@inject IAttendeeService AttendeeRepo
 <div class="row">
     <div class="col-md-10 col-md-offset-2">
         <table class="table">
@@ -18,7 +18,7 @@
                     <td>@Html.Raw(conference.Name)</td>
                     <td>@conference.Location</td>
                     <td>@conference.Start.ToString("ddd d MMM")</td>
-                    <td>@AttendeeRepo.GetAttendeesTotal(conference.Id)</td>
+                    <td>@AttendeeRepo.GetAttendeesTotal(conference.Id).Result</td>
                     <td>
                         <a asp-controller="Proposal" asp-action="Index" asp-route-conferenceId="@conference.Id">Proposals</a>
                     </td>

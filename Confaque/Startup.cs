@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Confaque.Service;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,9 @@ namespace Confaque
         {
             // configures mvc with a require https filter.
             services.AddMvc().AddMvcOptions(option => option.Filters.Add(new RequireHttpsAttribute()));
+            services.AddSingleton<IConferenceService, ConferenceService>();
+            services.AddSingleton<IProposalService, ProposalService>();
+            services.AddSingleton<IAttendeeService, AttendeeService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
