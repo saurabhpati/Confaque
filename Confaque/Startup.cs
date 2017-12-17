@@ -27,10 +27,12 @@ namespace Confaque
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHsts(option => option.MaxAge(days: 10))
-                .UseStaticFiles()
-                .UseStatusCodePages()
-                .UseMvc(route => route.MapRoute(name: "default", template: "{Controller=Conference}/{Action=Index}/{id?}"));
+            app.UseHsts(option => option.MaxAge(days: 10)) // Using http strict transport security protocol.
+               .UseCsp(option => option.DefaultSources(source => source.Self())) // Using content security protocol for anti xss.
+               .UseXfo(option => option.Deny()) // Denying X-Frames to run on the site to prevent click-jacking.
+               .UseStaticFiles()
+               .UseStatusCodePages()
+               .UseMvc(route => route.MapRoute(name: "default", template: "{Controller=Conference}/{Action=Index}/{id?}"));
         }
     }
 }
