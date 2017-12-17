@@ -1,7 +1,6 @@
 ﻿using Confaque.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,13 +27,10 @@ namespace Confaque
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHsts(option => option.MaxAge(days: 1))
+            app.UseHsts(option => option.MaxAge(days: 10))
+                .UseStaticFiles()
                 .UseStatusCodePages()
-                .UseMvc(route => route.MapRoute(name: "default", template: "{Controller=Conference}/{Action=Index}/{id?}"))
-                .Run(async (context) =>
-                {
-                    await context.Response.WriteAsync("Hello World!");
-                });
+                .UseMvc(route => route.MapRoute(name: "default", template: "{Controller=Conference}/{Action=Index}/{id?}"));
         }
     }
 }
