@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Confaque.Provider;
+using Microsoft.AspNetCore.DataProtection;
 using Shared.Models;
 
 namespace Confaque.Service
@@ -13,6 +15,7 @@ namespace Confaque.Service
         #region Private Fields
 
         private readonly List<ProposalModel> _proposals;
+        private readonly IDataProtector _protector;
 
         #endregion
 
@@ -20,8 +23,9 @@ namespace Confaque.Service
         /// <summary>
         /// Initializes a new instance of the<see cref="ProposalService"/> class. 
         /// </summary>
-        public ProposalService()
+        public ProposalService(IDataProtectionProvider dataProtectionProvider, IPurposeString purposeStringConstant)
         {
+            this._protector = dataProtectionProvider.CreateProtector(purposeStringConstant.ConferenceIdQueryString);
             this._proposals = new List<ProposalModel>
             {
                 new ProposalModel

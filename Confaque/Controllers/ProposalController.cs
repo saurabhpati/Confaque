@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Confaque.Provider;
 using Confaque.Service;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Models;
 
@@ -9,17 +11,23 @@ namespace Confaque.Controllers
     public class ProposalController : Controller
     {
         private readonly IProposalService _service;
+        private readonly IDataProtector _protector;
 
-        public ProposalController(IProposalService service)
+        public ProposalController(
+            IProposalService service, 
+            IDataProtectionProvider dataProtectionProvider, 
+            IPurposeString purposeStringConstant)
         {
             this._service = service;
+            this._protector = dataProtectionProvider.CreateProtector(purposeStringConstant.ConferenceIdQueryString);
         }
 
-        public async Task<IActionResult> Index(int conferenceId)
+        public async Task<IActionResult> Index(string conferenceId)
         {
             ViewBag.ConferenceId = conferenceId;
+            int decryptedConferenceId = Convert.ToInt32(this._protector.Unprotect(conferenceId));
             ViewBag.Title = "Proposals for the selected conference";
-            return View(await this._service.GetAll(conferenceId).ConfigureAwait(false));
+            return View(await this._service.GetAll(decryptedConferenceId).ConfigureAwait(false));    
         }
 
         public async Task<IActionResult> Add(int conferenceId)

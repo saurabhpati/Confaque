@@ -1,4 +1,5 @@
-﻿using Confaque.Service;
+﻿using Confaque.Provider;
+using Confaque.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -12,12 +13,15 @@ namespace Confaque
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(setup => setup.AddPolicy("AllowConfaque", policy => policy.WithOrigins("https://localhost:44311")));
+            services.AddCors(setup => setup.AddPolicy("AllowConfaque", policy => policy.WithOrigins("https://localhost:44311")))
+                    .AddDataProtection();
+            
             // configures mvc with a require https filter.
             services.AddMvc().AddMvcOptions(option => option.Filters.Add(new RequireHttpsAttribute()));
-            services.AddSingleton<IConferenceService, ConferenceService>();
-            services.AddSingleton<IProposalService, ProposalService>();
-            services.AddSingleton<IAttendeeService, AttendeeService>();
+            services.AddSingleton<IConferenceService, ConferenceService>()
+                    .AddSingleton<IProposalService, ProposalService>()
+                    .AddSingleton<IAttendeeService, AttendeeService>()
+                    .AddSingleton<IPurposeString, PurposeStringConstant>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

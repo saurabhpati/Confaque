@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Confaque.Provider;
+using Microsoft.AspNetCore.DataProtection;
 using Shared.Models;
 
 namespace Confaque.Service
@@ -13,6 +15,7 @@ namespace Confaque.Service
         #region Private Fields
 
         private readonly List<ConferenceModel> _conferences;
+        private readonly IDataProtector _protector;
 
         #endregion
 
@@ -21,12 +24,13 @@ namespace Confaque.Service
         /// <summary>
         /// Initializes a new instance of the<see cref="ConferenceService"/> class. 
         /// </summary>
-        public ConferenceService()
+        public ConferenceService(IDataProtectionProvider dataProtectionProvider, IPurposeString purposeString)
         {
+            this._protector = dataProtectionProvider.CreateProtector(purposeString.ConferenceIdQueryString);
             this._conferences = new List<ConferenceModel>
             {
-                new ConferenceModel { Id = 1, Name = "NDC", Location = "Oslo", Start = new DateTime(2017, 6, 12), AttendeeTotal = 2132 },
-                new ConferenceModel { Id = 2, Name = "IT/DevConnections", Location = "San Francisco", Start = new DateTime(2017, 10, 18), AttendeeTotal = 3210 }
+                new ConferenceModel { Id = 1, EncryptedId = this._protector.Protect("1"), Name = "NDC", Location = "Oslo", Start = new DateTime(2017, 6, 12), AttendeeTotal = 2132 },
+                new ConferenceModel { Id = 2, EncryptedId = this._protector.Protect("2"), Name = "IT/DevConnections", Location = "San Francisco", Start = new DateTime(2017, 10, 18), AttendeeTotal = 3210 }
             };
         }
 
@@ -49,6 +53,7 @@ namespace Confaque.Service
                 }
 
                 model.Id = this._conferences.Count + 1;
+                model.EncryptedId = this._protector.Protect(model.Id.ToString());
                 this._conferences.Add(model);
             }).ConfigureAwait(false);
         }
