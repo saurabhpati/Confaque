@@ -1,14 +1,26 @@
-﻿using Confaque.Provider;
+﻿using System.IO;
+using Confaque.Data;
+using Confaque.Provider;
 using Confaque.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Confaque
 {
     public class Startup
     {
+        private readonly IConfiguration _configuration;
+
+        public Startup(IConfiguration configuration)
+        {
+            this._configuration = configuration;
+        }
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
@@ -21,7 +33,12 @@ namespace Confaque
             services.AddSingleton<IConferenceService, ConferenceService>()
                     .AddSingleton<IProposalService, ProposalService>()
                     .AddSingleton<IAttendeeService, AttendeeService>()
-                    .AddSingleton<IPurposeString, PurposeStringConstant>();
+                    .AddSingleton<IPurposeString, PurposeStringConstant>()
+                    .AddDbContext<ConfaqueDbContext>(options =>
+                        options.UseSqlServer(this._configuration.GetConnectionString("ConfAqueConnection"),
+                        sqlOptions => sqlOptions.MigrationsAssembly("Confaque")))
+                    .AddIdentity<IdentityUser, IdentityRole>()
+                    .AddEntityFrameworkStores<IdentityDbContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -37,6 +54,7 @@ namespace Confaque
                .UseXfo(option => option.Deny()) // Denying X-Frames to run on the site to prevent click-jacking.
                .UseStaticFiles()
                .UseStatusCodePages()
+               .UseAuthentication()
                .UseMvc(route => route.MapRoute(name: "default", template: "{Controller=Conference}/{Action=Index}/{id?}"));
         }
     }

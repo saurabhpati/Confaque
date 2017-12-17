@@ -24,10 +24,13 @@ namespace Confaque.Controllers
 
         public async Task<IActionResult> Index(string conferenceId)
         {
-            ViewBag.ConferenceId = conferenceId;
-            int decryptedConferenceId = Convert.ToInt32(this._protector.Unprotect(conferenceId));
-            ViewBag.Title = "Proposals for the selected conference";
-            return View(await this._service.GetAll(decryptedConferenceId).ConfigureAwait(false));    
+            return await Task.Run(async () =>
+            {
+                ViewBag.ConferenceId = conferenceId;
+                int decryptedConferenceId = Convert.ToInt32(this._protector.Unprotect(conferenceId));
+                ViewBag.Title = "Proposals for the selected conference";
+                return View(await this._service.GetAll(decryptedConferenceId).ConfigureAwait(false));
+            }).ConfigureAwait(false);
         }
 
         public async Task<IActionResult> Add(int conferenceId)
