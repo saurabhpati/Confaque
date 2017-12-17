@@ -32,6 +32,7 @@ namespace Confaque.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Add(ProposalModel proposal)
         {
             if (!ModelState.IsValid)

@@ -15,7 +15,7 @@
             @foreach (var conference in Model)
             {
                 <tr>
-                    <td>@Html.Raw(conference.Name)</td>
+                    <td>@conference.Name</td>
                     <td>@conference.Location</td>
                     <td>@conference.Start.ToString("ddd d MMM")</td>
                     <td>@AttendeeRepo.GetAttendeesTotal(conference.Id).Result</td>

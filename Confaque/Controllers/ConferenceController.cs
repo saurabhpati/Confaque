@@ -28,6 +28,7 @@ namespace Confaque.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Add(ConferenceModel model)
         {
             if (!this.ModelState.IsValid)
