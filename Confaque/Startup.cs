@@ -12,6 +12,7 @@ namespace Confaque
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(setup => setup.AddPolicy("AllowConfaque", policy => policy.WithOrigins("https://localhost:44311")));
             // configures mvc with a require https filter.
             services.AddMvc().AddMvcOptions(option => option.Filters.Add(new RequireHttpsAttribute()));
             services.AddSingleton<IConferenceService, ConferenceService>();
