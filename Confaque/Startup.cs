@@ -37,8 +37,10 @@ namespace Confaque
                     .AddDbContext<ConfaqueDbContext>(options =>
                         options.UseSqlServer(this._configuration.GetConnectionString("ConfAqueConnection"),
                         sqlOptions => sqlOptions.MigrationsAssembly("Confaque")))
-                    .AddIdentity<IdentityUser, IdentityRole>()
-                    .AddEntityFrameworkStores<IdentityDbContext>();
+                        .AddIdentity<ConfaqueUser, IdentityRole>()
+                    .AddEntityFrameworkStores<ConfaqueDbContext>();
+
+            services.AddScoped<UserManager<ConfaqueUser>>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
