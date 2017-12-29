@@ -3,9 +3,11 @@ using System.Threading.Tasks;
 using Confaque.Service;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Confaque.Controllers
 {
+    [Authorize]
     public class ConferenceController : Controller
     {
         private readonly IConferenceService _service;

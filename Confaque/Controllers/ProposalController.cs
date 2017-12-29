@@ -5,9 +5,11 @@ using Confaque.Service;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Confaque.Controllers
 {
+    [Authorize]
     public class ProposalController : Controller
     {
         private readonly IProposalService _service;
