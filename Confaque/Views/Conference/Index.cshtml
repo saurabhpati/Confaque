@@ -29,4 +29,9 @@
 
     </div>
 </div>
+@foreach (var claim in this.User.Claims)
+{
+    <dt>@claim.Type</dt>
+    <dd>@claim.Value</dd>
+}
 
