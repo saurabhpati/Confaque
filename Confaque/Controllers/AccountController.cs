@@ -6,17 +6,23 @@ using Confaque.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Model.Account;
+using System.Security.Claims;
 
 namespace Confaque.Controllers
 {
     public class AccountController : Controller
     {
         private readonly UserManager<ConfaqueUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ConfaqueUser> _signInManager;
 
-        public AccountController(UserManager<ConfaqueUser> userManager, SignInManager<ConfaqueUser> signInManager)
+        public AccountController(
+            UserManager<ConfaqueUser> userManager, 
+            RoleManager<IdentityRole> roleManager,
+            SignInManager<ConfaqueUser> signInManager)
         {
             this._userManager = userManager;
+            this._roleManager = roleManager;
             this._signInManager = signInManager;
         }
 
@@ -34,13 +40,33 @@ namespace Confaque.Controllers
                 return View("Error");
             }
 
-            IdentityResult result = await this._userManager.CreateAsync(new ConfaqueUser()
+            ConfaqueUser user = new ConfaqueUser()
             {
                 UserName = model.Email,
                 Email = model.Email,
+                BirthDate = model.BirthDate
+            };
 
-            }, model.Password);
+            // User manager creates the user.
+            IdentityResult result = await this._userManager.CreateAsync(user, model.Password);
 
+            // Role manager creates the organizer role if it is not created already.
+            // This is needed because the role has to exist before a user can be added to the role.
+            if (!await this._roleManager.RoleExistsAsync("Organizer").ConfigureAwait(false))
+            {
+                await this._roleManager.CreateAsync(new IdentityRole("Organizer")).ConfigureAwait(false);
+            }
+
+            // Same is done for the speaker what is done for the organizer above.
+            if (!await this._roleManager.RoleExistsAsync("Speaker").ConfigureAwait(false))
+            {
+                await this._roleManager.CreateAsync(new IdentityRole("Speaker")).ConfigureAwait(false);
+            }
+
+            // Adds user to the role and the claim.
+            await this._userManager.AddToRoleAsync(user, model.Role).ConfigureAwait(false);
+            await this._userManager.AddClaimAsync(user, new Claim("technology", model.Technology)).ConfigureAwait(false);
+            
             if (result.Succeeded)
             {
                 return View("RegistrationConfirmation");

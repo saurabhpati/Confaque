@@ -41,7 +41,8 @@ namespace Confaque
                     .AddEntityFrameworkStores<ConfaqueDbContext>();
 
             services.AddScoped<UserManager<ConfaqueUser>>()
-                    .AddScoped<SignInManager<ConfaqueUser>>();
+                    .AddScoped<SignInManager<ConfaqueUser>>()
+                    .AddScoped<IdentityRole>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
