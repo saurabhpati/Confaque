@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Confaque.Data;
+﻿using Confaque.Data;
+using Confaque.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Model.Account;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Confaque.Controllers
 {
@@ -15,15 +14,18 @@ namespace Confaque.Controllers
         private readonly UserManager<ConfaqueUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ConfaqueUser> _signInManager;
+        private readonly IEmailService _emailService;
 
         public AccountController(
-            UserManager<ConfaqueUser> userManager, 
+            UserManager<ConfaqueUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            SignInManager<ConfaqueUser> signInManager)
+            SignInManager<ConfaqueUser> signInManager,
+            IEmailService emailService)
         {
             this._userManager = userManager;
             this._roleManager = roleManager;
             this._signInManager = signInManager;
+            this._emailService = emailService;
         }
 
         [HttpGet]
@@ -33,8 +35,10 @@ namespace Confaque.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(RegisterModel model)
+        public async Task<IActionResult> Register(RegisterModel model, string returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
+
             if (!ModelState.IsValid)
             {
                 return View("Error");
@@ -69,6 +73,11 @@ namespace Confaque.Controllers
             
             if (result.Succeeded)
             {
+                string code = await this._userManager.GenerateEmailConfirmationTokenAsync(user).ConfigureAwait(false);
+                string callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, Request.Scheme);
+                await this._emailService.SendEmailAsync(user.Email, "Confirm Account", $"Please confirm your account by clicking this link {callbackUrl}").ConfigureAwait(false);
+                await this._signInManager.SignInAsync(user, isPersistent: false).ConfigureAwait(false);
+                
                 return View("RegistrationConfirmation");
             }
 
@@ -89,6 +98,7 @@ namespace Confaque.Controllers
                 return View();
             }).ConfigureAwait(false);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -121,6 +131,26 @@ namespace Confaque.Controllers
             }
 
             return View(loginModel);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        {
+            if (userId == null || code == null)
+            {
+                return NotFound();
+            }
+
+            ConfaqueUser user = await this._userManager.FindByIdAsync(userId).ConfigureAwait(false);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            IdentityResult result = await this._userManager.ConfirmEmailAsync(user, code).ConfigureAwait(false);
+            return View(result != null && result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
         private async Task<IActionResult> RedirectToLocal(string returnUrl)
