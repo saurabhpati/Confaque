@@ -35,11 +35,14 @@ namespace Confaque
                     .AddSingleton<IProposalService, ProposalService>()
                     .AddSingleton<IAttendeeService, AttendeeService>()
                     .AddSingleton<IPurposeString, PurposeStringConstant>()
+                    .AddSingleton<IEmailService, EmailService>()
+                    .Configure<EmailSettingOptions>(this._configuration.GetSection("EmailSettings"))
                     .AddDbContext<ConfaqueDbContext>(options =>
                         options.UseSqlServer(this._configuration.GetConnectionString("ConfAqueConnection"),
                         sqlOptions => sqlOptions.MigrationsAssembly("Confaque")))
                         .AddIdentity<ConfaqueUser, IdentityRole>()
-                    .AddEntityFrameworkStores<ConfaqueDbContext>();
+                    .AddEntityFrameworkStores<ConfaqueDbContext>()
+                    .AddDefaultTokenProviders();
 
             services.AddScoped<UserManager<ConfaqueUser>>()
                     .AddScoped<SignInManager<ConfaqueUser>>()
