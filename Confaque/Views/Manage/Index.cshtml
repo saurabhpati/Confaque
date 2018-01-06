@@ -30,15 +30,11 @@
                 <div class="input-group">
                     @if (Model.IsTwoFactorAuthEnabled)
                     {
-                        <strong><a>Enable Two Factor Authentication</a></strong>
-                        <br />
-                        <a asp-controller="Account" asp-action="DisableTwoFactorAuthentication">Disable Two Factor Authentication</a>
+                        <a asp-controller="Manage" asp-action="ToggleTwoFactorAuthentication">Disable Two Factor Authentication</a>
                     }
                     else
                     {
-                        <a asp-controller="Account" asp-action="EnableTwoFactorAuthentication">Enable Two Factor Authentication</a>
-                        <br />
-                        <strong><a>Disable Two Factor Authentication</a></strong>
+                        <a asp-controller="Manage" asp-action="ToggleTwoFactorAuthentication">Enable Two Factor Authentication</a>
                     }
                 </div>
             </div>

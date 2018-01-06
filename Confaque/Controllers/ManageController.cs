@@ -18,6 +18,7 @@ namespace Confaque.Controllers
             this._userManager = userManager;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             ConfaqueUser user = await this._userManager.GetUserAsync(this.User).ConfigureAwait(false);
@@ -30,5 +31,21 @@ namespace Confaque.Controllers
             };
             return View(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ToggleTwoFactorAuthentication()
+        {
+            ConfaqueUser user = await this._userManager.GetUserAsync(this.User).ConfigureAwait(false);
+            user.TwoFactorEnabled = !user.TwoFactorEnabled;
+            return RedirectToAction(user.TwoFactorEnabled ? "EnableAuthenticator" : "Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EnableAuthenticator()
+        {
+            return View();
+        }
     }
+
+
 }
