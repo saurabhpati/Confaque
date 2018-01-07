@@ -43,7 +43,26 @@ namespace Confaque.Controllers
         [HttpGet]
         public async Task<IActionResult> EnableAuthenticator()
         {
-            return View();
+            ConfaqueUser user = await this._userManager.GetUserAsync(this.User).ConfigureAwait(false);
+
+            string key = await this._userManager.GetAuthenticatorKeyAsync(user).ConfigureAwait(false);
+
+            if (string.IsNullOrEmpty(key))
+            {
+                IdentityResult result = await this._userManager.ResetAuthenticatorKeyAsync(user).ConfigureAwait(false);
+
+                if (result.Succeeded)
+                {
+                    key = await this._userManager.GetAuthenticatorKeyAsync(user).ConfigureAwait(false);
+                }
+            }
+
+            AuthenicatorModel model = new AuthenicatorModel()
+            {
+                // TODO: Generate Shared key and QR Code here
+            };
+
+            return View(model);
         }
     }
 
