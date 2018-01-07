@@ -6,16 +6,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Confaque.Data;
 using Shared.Model.Manage;
+using System.Text;
+using System.Text.Encodings.Web;
 
 namespace Confaque.Controllers
 {
     public class ManageController : Controller
     {
         private readonly UserManager<ConfaqueUser> _userManager;
+        private readonly UrlEncoder _urlEncoder;
+        private const string AuthenicatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
-        public ManageController(UserManager<ConfaqueUser> userManager)
+        public ManageController(UserManager<ConfaqueUser> userManager, UrlEncoder urlEncoder)
         {
             this._userManager = userManager;
+            this._urlEncoder = urlEncoder;
         }
 
         [HttpGet]
@@ -44,7 +49,6 @@ namespace Confaque.Controllers
         public async Task<IActionResult> EnableAuthenticator()
         {
             ConfaqueUser user = await this._userManager.GetUserAsync(this.User).ConfigureAwait(false);
-
             string key = await this._userManager.GetAuthenticatorKeyAsync(user).ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(key))
@@ -59,11 +63,38 @@ namespace Confaque.Controllers
 
             AuthenicatorModel model = new AuthenicatorModel()
             {
-                // TODO: Generate Shared key and QR Code here
+                SharedKey = this.FormatKey(key),
+                AuthenticatorUri = this.GenerateQRCodeUri(user.Email, key)
             };
 
             return View(model);
         }
+
+        private string FormatKey(string key)
+        {
+            var result = new StringBuilder();
+            int currentPosition = 0;
+
+            while (currentPosition + 4 < key.Length)
+            {
+                result.Append(key.Substring(currentPosition, 4)).Append(" ");
+                currentPosition += 4;
+            }
+
+            if (currentPosition < key.Length)
+            {
+                result.Append(key.Substring(currentPosition));
+            }
+
+            return result.ToString().ToLowerInvariant();
+        }
+
+        private string GenerateQRCodeUri(string email, string key) => string.Format(
+            AuthenicatorUriFormat,
+            this._urlEncoder.Encode("Confaque"),
+            this._urlEncoder.Encode(email),
+            key);
+        
     }
 
 
