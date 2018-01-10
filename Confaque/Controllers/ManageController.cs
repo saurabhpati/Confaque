@@ -41,8 +41,14 @@ namespace Confaque.Controllers
         public async Task<IActionResult> ToggleTwoFactorAuthentication()
         {
             ConfaqueUser user = await this._userManager.GetUserAsync(this.User).ConfigureAwait(false);
-            user.TwoFactorEnabled = !user.TwoFactorEnabled;
-            return RedirectToAction(user.TwoFactorEnabled ? "EnableAuthenticator" : "Index");
+
+            if (user.TwoFactorEnabled)
+            {
+                await this._userManager.SetTwoFactorEnabledAsync(user, false).ConfigureAwait(false);
+                return RedirectToAction("Index");
+            }
+            
+            return RedirectToAction("EnableAuthenticator");
         }
 
         [HttpGet]
@@ -70,6 +76,52 @@ namespace Confaque.Controllers
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EnableAuthenticator(AuthenicatorModel model)
+        {
+            if (model == null)
+            {
+                throw new Exception("Model is null");
+            }
+
+            if (!this.ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            if (string.IsNullOrEmpty(model.Code))
+            {
+                this.ModelState.AddModelError("model.Code", "Verification code not provided");
+            }
+
+            ConfaqueUser user = await this._userManager.GetUserAsync(this.User).ConfigureAwait(false);
+
+            if (user == null)
+            {
+                throw new ApplicationException("User not found");
+            }
+
+            bool is2faTokenValid =  await this._userManager.VerifyTwoFactorTokenAsync(
+                user, 
+                this._userManager.Options.Tokens.AuthenticatorTokenProvider, 
+                model.Code).ConfigureAwait(false);
+
+            if (!is2faTokenValid)
+            {
+                this.ModelState.AddModelError("model.Code", "Code is invalid");
+            }
+
+            IdentityResult result = await this._userManager.SetTwoFactorEnabledAsync(user, true).ConfigureAwait(false);
+
+            if (!result.Succeeded)
+            {
+                this.ModelState.AddModelError("is2faEnabled", "Cannot Enable 2FA");
+            }
+
+            return RedirectToAction("Index");
+        }
+
         private string FormatKey(string key)
         {
             var result = new StringBuilder();
@@ -94,7 +146,7 @@ namespace Confaque.Controllers
             this._urlEncoder.Encode("Confaque"),
             this._urlEncoder.Encode(email),
             key);
-        
+
     }
 
 

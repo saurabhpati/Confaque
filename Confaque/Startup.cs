@@ -59,7 +59,7 @@ namespace Confaque
             }
 
             app.UseHsts(option => option.MaxAge(days: 10)) // Using http strict transport security protocol.
-               .UseCsp(option => option.DefaultSources(source => source.Self())) // Using content security protocol for anti xss.
+               //.UseCsp(option => option.DefaultSources(source => source.Self())) // Using content security protocol for anti xss.
                .UseXfo(option => option.Deny()) // Denying X-Frames to run on the site to prevent click-jacking.
                .UseStaticFiles()
                .UseStatusCodePages()
