@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Model.Account;
+using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -70,14 +71,14 @@ namespace Confaque.Controllers
             // Adds user to the role and the claim.
             await this._userManager.AddToRoleAsync(user, model.Role).ConfigureAwait(false);
             await this._userManager.AddClaimAsync(user, new Claim("technology", model.Technology)).ConfigureAwait(false);
-            
+
             if (result.Succeeded)
             {
                 string code = await this._userManager.GenerateEmailConfirmationTokenAsync(user).ConfigureAwait(false);
                 string callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, Request.Scheme);
                 await this._emailService.SendEmailAsync(user.Email, "Confirm Account", $"Please confirm your account by clicking this link {callbackUrl}").ConfigureAwait(false);
                 await this._signInManager.SignInAsync(user, isPersistent: false).ConfigureAwait(false);
-                
+
                 return View("RegistrationConfirmation");
             }
 
@@ -119,7 +120,7 @@ namespace Confaque.Controllers
 
                 if (result.RequiresTwoFactor)
                 {
-                    // Do nothing for now.
+                    return this.RedirectToAction(nameof(TwoFactorLogin), new { returnUrl, loginModel.RememberMe });
                 }
 
                 if (result.IsLockedOut)
@@ -151,6 +152,56 @@ namespace Confaque.Controllers
 
             IdentityResult result = await this._userManager.ConfirmEmailAsync(user, code).ConfigureAwait(false);
             return View(result != null && result.Succeeded ? "ConfirmEmail" : "Error");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TwoFactorLogin(bool rememberMe, string returnUrl = null)
+        {
+            ConfaqueUser user = await this._signInManager.GetTwoFactorAuthenticationUserAsync().ConfigureAwait(false);
+
+            if (user == null)
+            {
+                throw new ApplicationException("User is null");
+            }
+
+            TwoFactorLoginModel model = new TwoFactorLoginModel()
+            {
+                RememberMe = rememberMe
+            };
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TwoFactorLogin(TwoFactorLoginModel model, string returnUrl = null)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            if (model == null)
+            {
+                throw new ApplicationException("Model is null");
+            }
+
+            string code = model.TwoFactorCode;
+            Microsoft.AspNetCore.Identity.SignInResult result = await this._signInManager.TwoFactorAuthenticatorSignInAsync(
+                model.TwoFactorCode,
+                model.RememberMe,
+                model.RememberMachine).ConfigureAwait(false);
+
+            if (result.Succeeded)
+            {
+                return await this.RedirectToLocal(returnUrl).ConfigureAwait(false);
+            }
+            else
+            {
+                this.ModelState.AddModelError("model.Code", "Invalid Code");
+                return View();
+            }
         }
 
         private async Task<IActionResult> RedirectToLocal(string returnUrl)
