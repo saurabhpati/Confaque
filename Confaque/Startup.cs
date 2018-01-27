@@ -40,7 +40,7 @@ namespace Confaque
                     .AddDbContext<ConfaqueDbContext>(options =>
                         options.UseSqlServer(this._configuration.GetConnectionString("ConfAqueConnection"),
                         sqlOptions => sqlOptions.MigrationsAssembly("Confaque")))
-                        .AddIdentity<ConfaqueUser, IdentityRole>()
+                    .AddIdentity<ConfaqueUser, IdentityRole>(option => option.Lockout.MaxFailedAccessAttempts = 5)
                     .AddEntityFrameworkStores<ConfaqueDbContext>()
                     .AddDefaultTokenProviders();
 

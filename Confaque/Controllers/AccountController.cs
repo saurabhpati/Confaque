@@ -111,7 +111,7 @@ namespace Confaque.Controllers
             {
                 Microsoft.AspNetCore.Identity.SignInResult result =
                     await this._signInManager.PasswordSignInAsync(loginModel.Email, loginModel.Password, loginModel.RememberMe,
-                    lockoutOnFailure: false).ConfigureAwait(false);
+                    lockoutOnFailure: true).ConfigureAwait(false);
 
                 if (result.Succeeded)
                 {
@@ -128,7 +128,7 @@ namespace Confaque.Controllers
                     return View("Lockout");
                 }
 
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.sss");
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
 
             return View(loginModel);
