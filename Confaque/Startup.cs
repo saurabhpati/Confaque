@@ -28,7 +28,12 @@ namespace Confaque
         {
             services.AddCors(setup => setup.AddPolicy("AllowConfaque", policy => policy.WithOrigins("https://localhost:44311")))
                     .AddDataProtection();
-            
+
+            services.AddAuthentication().AddGoogle(options => 
+            {
+                options.ClientId = "793755898736-dgat4m00gquv8af0pigoi244pbduh6o9.apps.googleusercontent.com";
+                options.ClientSecret = "GT64NkddlIobE10r5q_G-VqR";
+            });
             // configures mvc with a require https filter.
             services.AddMvc().AddMvcOptions(option => option.Filters.Add(new RequireHttpsAttribute()));
             services.AddSingleton<IConferenceService, ConferenceService>()

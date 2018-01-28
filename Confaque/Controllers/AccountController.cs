@@ -1,5 +1,6 @@
 ﻿using Confaque.Data;
 using Confaque.Service;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +37,7 @@ namespace Confaque.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
@@ -125,7 +127,7 @@ namespace Confaque.Controllers
 
                 if (result.IsLockedOut)
                 {
-                    return View("Lockout");
+                    return RedirectToAction(nameof(Lockout));
                 }
 
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
@@ -202,6 +204,54 @@ namespace Confaque.Controllers
                 this.ModelState.AddModelError("model.Code", "Invalid Code");
                 return View();
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExternalLogin(string provider, string returnUrl = null)
+        {
+            string redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
+            AuthenticationProperties properties = this._signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return await Task.FromResult<IActionResult>(Challenge(properties, provider)).ConfigureAwait(false);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        {
+            if (!string.IsNullOrEmpty(remoteError))
+            {
+                RedirectToAction(nameof(Login));
+            }
+
+            ExternalLoginInfo loginInfo = await this._signInManager.GetExternalLoginInfoAsync().ConfigureAwait(false);
+            Microsoft.AspNetCore.Identity.SignInResult result = await this._signInManager.ExternalLoginSignInAsync(
+                loginInfo.LoginProvider,
+                loginInfo.ProviderKey,
+                isPersistent: false,
+                bypassTwoFactor: true).ConfigureAwait(false);
+
+            if (result.IsLockedOut)
+            {
+                return RedirectToAction(nameof(Lockout));
+            }
+
+            if (result.Succeeded)
+            {
+                return await this.RedirectToLocal(returnUrl).ConfigureAwait(false);
+            }
+            else
+            {
+                ViewData["ReturnUrl"] = returnUrl;
+                ViewData["LoginProvider"] = loginInfo.LoginProvider;
+                string email = loginInfo.Principal.FindFirstValue(ClaimTypes.Email);
+                return View(nameof(ExternalLogin), new ExternalLoginModel() { Email = email });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Lockout()
+        {
+            return await Task.FromResult<IActionResult>(View(nameof(Lockout))).ConfigureAwait(false);
         }
 
         private async Task<IActionResult> RedirectToLocal(string returnUrl)
