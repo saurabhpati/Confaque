@@ -33,7 +33,16 @@ namespace Confaque
             {
                 options.ClientId = "793755898736-dgat4m00gquv8af0pigoi244pbduh6o9.apps.googleusercontent.com";
                 options.ClientSecret = "GT64NkddlIobE10r5q_G-VqR";
+            }).AddMicrosoftAccount(options => 
+            {
+                options.ClientId = "8609190f-f8e1-4f7c-9221-e886225c5112";
+                options.ClientSecret = "rstkGVPRZY103)ntyG60@!~";
+            }).AddFacebook(options =>
+            {
+                options.ClientId = "605402336518461";
+                options.ClientSecret = "3556b24e2713e5eb4e5aa4299a210583";
             });
+
             // configures mvc with a require https filter.
             services.AddMvc().AddMvcOptions(option => option.Filters.Add(new RequireHttpsAttribute()));
             services.AddSingleton<IConferenceService, ConferenceService>()
