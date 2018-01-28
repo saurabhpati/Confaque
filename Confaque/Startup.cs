@@ -39,8 +39,12 @@ namespace Confaque
                 options.ClientSecret = "rstkGVPRZY103)ntyG60@!~";
             }).AddFacebook(options =>
             {
-                options.ClientId = "605402336518461";
-                options.ClientSecret = "3556b24e2713e5eb4e5aa4299a210583";
+                options.AppId= "605402336518461";
+                options.AppSecret = "3556b24e2713e5eb4e5aa4299a210583";
+            }).AddTwitter(options => 
+            {
+                options.ConsumerKey = "Yee3aVzm3vgVHPprweD6QL5pm";
+                options.ConsumerSecret = "LAZKYw2qGNfj401FscPMq7CdZIt5oK6o8vd7z6i3J5DqvXoMHn";
             });
 
             // configures mvc with a require https filter.
