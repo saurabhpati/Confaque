@@ -208,6 +208,7 @@ namespace Confaque.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> ExternalLogin(string provider, string returnUrl = null)
         {
             string redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
@@ -246,6 +247,27 @@ namespace Confaque.Controllers
                 string email = loginInfo.Principal.FindFirstValue(ClaimTypes.Email);
                 return View(nameof(ExternalLogin), new ExternalLoginModel() { Email = email });
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginModel model, string returnUrl = null)
+        {
+            if (ModelState.IsValid)
+            {
+                ConfaqueUser user = new ConfaqueUser() { UserName = model.Email, Email = model.Email };
+                IdentityResult result = await this._userManager.CreateAsync(user).ConfigureAwait(false);
+
+                if (result.Succeeded)
+                {
+                    ExternalLoginInfo info = await this._signInManager.GetExternalLoginInfoAsync().ConfigureAwait(false);
+                    result = await this._userManager.AddLoginAsync(user, info).ConfigureAwait(false);
+                    return await this.RedirectToLocal(returnUrl).ConfigureAwait(false);
+                }
+            }
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View(nameof(ExternalLogin), model);
         }
 
         [HttpGet]
